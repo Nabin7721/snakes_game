@@ -1,0 +1,123 @@
+import pygame
+import random
+
+# Initialize pygame
+pygame.init()
+
+# Define colors
+WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
+RED = (255, 0, 0)
+GREEN = (0, 255, 0)
+BLUE = (0, 0, 255)
+
+# Set the width and height of the screen
+SCREEN_WIDTH = 800
+SCREEN_HEIGHT = 600
+
+# Set the size of each grid block and the speed of the snake
+BLOCK_SIZE = 20
+SNAKE_SPEED = 15
+
+# Create the snake class
+class Snake:
+    def __init__(self):
+        self.size = 1
+        self.elements = [[100, 50]]
+        self.dx = BLOCK_SIZE
+        self.dy = 0
+
+    def draw(self, surface):
+        for element in self.elements:
+            pygame.draw.rect(surface, GREEN, (element[0], element[1], BLOCK_SIZE, BLOCK_SIZE))
+
+    def move(self):
+        head = list(self.elements[0])
+        head[0] += self.dx
+        head[1] += self.dy
+        self.elements.insert(0, head)
+        if len(self.elements) > self.size:
+            self.elements.pop()
+
+    def eat(self):
+        self.size += 1
+
+    def die(self):
+        return any((head in self.elements[1:]) or (head[0] not in range(SCREEN_WIDTH)) or (head[1] not in range(SCREEN_HEIGHT)) for head in self.elements)
+
+# Create the food class
+class Food:
+    def __init__(self):
+        self.x = random.randint(0, (SCREEN_WIDTH - BLOCK_SIZE) // BLOCK_SIZE) * BLOCK_SIZE
+        self.y = random.randint(0, (SCREEN_HEIGHT - BLOCK_SIZE) // BLOCK_SIZE) * BLOCK_SIZE
+
+    def draw(self, surface):
+        pygame.draw.rect(surface, RED, (self.x, self.y, BLOCK_SIZE, BLOCK_SIZE))
+
+# Create the game function
+def game():
+    # Set up the display
+    screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+    pygame.display.set_caption('Snake Game')
+
+    # Initialize objects
+    snake = Snake()
+    food = Food()
+
+    # Set up the clock
+    clock = pygame.time.Clock()
+
+    # Game loop
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                quit()
+
+            # Change the direction of the snake
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_LEFT:
+                    if snake.dx == 0:
+                        snake.dx = -BLOCK_SIZE
+                        snake.dy = 0
+                elif event.key == pygame.K_RIGHT:
+                    if snake.dx == 0:
+                        snake.dx = BLOCK_SIZE
+                        snake.dy = 0
+                elif event.key == pygame.K_UP:
+                    if snake.dy == 0:
+                        snake.dy = -BLOCK_SIZE
+                        snake.dx = 0
+                elif event.key == pygame.K_DOWN:
+                    if snake.dy == 0:
+                        snake.dy = BLOCK_SIZE
+                        snake.dx = 0
+
+        # Move the snake
+        snake.move()
+
+        # Check if snake eats food
+        if (snake.elements[0][0] == food.x) and (snake.elements[0][1] == food.y):
+            snake.eat()
+            food = Food()
+
+        # Check if snake dies
+        if snake.die():
+            game_over()
+
+        # Draw everything on the screen
+        screen.fill(BLACK)
+        snake.draw(screen)
+        food.draw(screen)
+        pygame.display.update()
+
+        # Cap the frame rate
+        clock.tick(SNAKE_SPEED)
+
+# Create the game over function
+def game_over():
+    pygame.quit()
+    quit()
+
+# Run the game
+game()
